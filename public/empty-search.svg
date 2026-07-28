@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" fill="none">
+  <!-- stack of mini cards -->
+  <g transform="rotate(-4 200 190)">
+    <rect x="110" y="150" width="130" height="80" rx="10" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2" opacity=".55"/>
+  </g>
+  <g transform="rotate(3 210 180)">
+    <rect x="130" y="140" width="130" height="80" rx="10" fill="#fff" stroke="#7C3AED" stroke-width="2" opacity=".75"/>
+    <rect x="144" y="156" width="60" height="8" rx="4" fill="#EDE9FE"/>
+  </g>
+  <!-- highlighted card -->
+  <g transform="rotate(-1 200 170)">
+    <rect x="150" y="128" width="132" height="84" rx="10" fill="#fff" stroke="#7C3AED" stroke-width="2.5"/>
+    <rect x="164" y="144" width="70" height="9" rx="4.5" fill="#7C3AED" opacity=".35"/>
+    <rect x="164" y="160" width="92" height="8" rx="4" fill="#EDE9FE"/>
+    <rect x="164" y="182" width="24" height="12" rx="6" fill="#25D366" opacity=".55"/>
+  </g>
+  <!-- magnifier -->
+  <g>
+    <circle cx="212" cy="120" r="46" fill="#fff" fill-opacity=".65" stroke="#7C3AED" stroke-width="4"/>
+    <line x1="246" y1="154" x2="282" y2="190" stroke="#7C3AED" stroke-width="8" stroke-linecap="round"/>
+    <path d="M188 112a26 26 0 0 1 20-14" stroke="#7C3AED" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+  </g>
+  <!-- sparkles -->
+  <g stroke="#7C3AED" stroke-width="2" stroke-linecap="round">
+    <path d="M96 70v12M90 76h12" opacity=".6"/>
+    <path d="M310 90v10M305 95h10" opacity=".4"/>
+  </g>
+  <circle cx="320" cy="220" r="5" fill="#25D366" opacity=".4"/>
+</svg>

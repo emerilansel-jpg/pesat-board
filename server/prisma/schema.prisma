@@ -1,0 +1,321 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum CommentSource {
+  APP
+  WA
+}
+
+enum WaDirection {
+  IN
+  OUT
+}
+
+enum WaMessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum InboxStatus {
+  PENDING
+  ATTACHED
+  IGNORED
+}
+
+model User {
+  id               String    @id @default(cuid())
+  name             String
+  email            String    @unique
+  passwordHash     String?
+  googleId         String?   @unique
+  avatarUrl        String?
+  waNumber         String?   @unique
+  createdAt        DateTime  @default(now())
+
+  waSession        WaSession?
+  createdWorkspaces Workspace[] @relation("WorkspaceCreator")
+  memberships      WorkspaceMember[]
+  stars            BoardStar[]
+  cardsCreated     Card[]     @relation("CardCreator")
+  assignees        CardAssignee[]
+  comments         Comment[]
+  mentions         CommentMention[]
+  attachments      Attachment[]
+  activities       Activity[]
+  waMessages       WaMessage[]
+  inboxItems       InboxItem[]
+}
+
+model WaSession {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    String   @default("DISCONNECTED")
+  qr        String?
+  phone     String?
+  updatedAt DateTime @updatedAt
+}
+
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  createdById String
+  createdBy   User     @relation("WorkspaceCreator", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  members     WorkspaceMember[]
+  boards      Board[]
+  invites     Invite[]
+}
+
+model WorkspaceMember {
+  workspaceId String
+  userId      String
+  role        Role     @default(MEMBER)
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([workspaceId, userId])
+}
+
+model Invite {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  email       String
+  role        Role     @default(MEMBER)
+  token       String   @unique
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+}
+
+model Board {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String
+  background  String   @default("#0d9488")
+  archived    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  stars       BoardStar[]
+  lists       List[]
+  labels      Label[]
+  activities  Activity[]
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId])
+}
+
+model BoardStar {
+  boardId String
+  userId  String
+  board   Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([boardId, userId])
+}
+
+model List {
+  id        String  @id @default(cuid())
+  boardId   String
+  board     Board   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  title     String
+  position  Float
+  archived  Boolean @default(false)
+
+  cards     Card[]
+
+  @@index([boardId])
+}
+
+model Card {
+  id          String    @id @default(cuid())
+  listId      String
+  list        List      @relation(fields: [listId], references: [id], onDelete: Cascade)
+  title       String
+  description String    @default("")
+  position    Float
+  dueDate     DateTime?
+  coverColor  String?
+  archived    Boolean   @default(false)
+  createdById String
+  createdBy   User      @relation("CardCreator", fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  assignees   CardAssignee[]
+  labels      CardLabel[]
+  checklists  Checklist[]
+  comments    Comment[]
+  attachments Attachment[]
+  waMessages  WaMessage[]
+  inboxItems  InboxItem[]
+
+  @@index([listId])
+}
+
+model CardAssignee {
+  cardId String
+  userId String
+  card   Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([cardId, userId])
+}
+
+model Label {
+  id      String @id @default(cuid())
+  boardId String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  name    String
+  color   String
+
+  cards   CardLabel[]
+
+  @@index([boardId])
+}
+
+model CardLabel {
+  cardId  String
+  labelId String
+  card    Card  @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  label   Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([cardId, labelId])
+}
+
+model Checklist {
+  id       String @id @default(cuid())
+  cardId   String
+  card     Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  title    String
+  position Float
+
+  items    ChecklistItem[]
+
+  @@index([cardId])
+}
+
+model ChecklistItem {
+  id          String    @id @default(cuid())
+  checklistId String
+  checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  text        String
+  done        Boolean   @default(false)
+  position    Float
+
+  @@index([checklistId])
+}
+
+model Comment {
+  id        String        @id @default(cuid())
+  cardId    String
+  card      Card          @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id])
+  body      String
+  source    CommentSource @default(APP)
+  waMsgId   String?
+  parentId  String?
+  parent    Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: NoAction)
+  replies   Comment[]     @relation("CommentReplies")
+  createdAt DateTime      @default(now())
+
+  mentions  CommentMention[]
+  attachments Attachment[]
+  waMessages WaMessage[]
+
+  @@index([cardId, createdAt])
+}
+
+model CommentMention {
+  commentId String
+  userId    String
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([commentId, userId])
+}
+
+model Attachment {
+  id           String   @id @default(cuid())
+  cardId       String
+  card         Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  commentId    String?
+  comment      Comment? @relation(fields: [commentId], references: [id], onDelete: SetNull)
+  fileName     String
+  path         String
+  mime         String
+  size         Int
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([cardId])
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id])
+  type      String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@index([boardId, createdAt])
+}
+
+model WaMessage {
+  id         String          @id @default(cuid())
+  waMsgId    String          @unique
+  direction  WaDirection
+  cardId     String?
+  card       Card?           @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  commentId  String?
+  comment    Comment?        @relation(fields: [commentId], references: [id], onDelete: SetNull)
+  fromUserId String?
+  fromUser   User?           @relation(fields: [fromUserId], references: [id], onDelete: SetNull)
+  toPhone    String
+  fromPhone  String
+  status     WaMessageStatus @default(QUEUED)
+  createdAt  DateTime        @default(now())
+
+  @@index([waMsgId])
+  @@index([cardId])
+}
+
+model InboxItem {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fromPhone String
+  text      String
+  mediaPath String?
+  status    InboxStatus @default(PENDING)
+  cardId    String?
+  card      Card?       @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  createdAt DateTime    @default(now())
+
+  @@index([userId, status])
+}
