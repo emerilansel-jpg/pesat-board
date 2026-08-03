@@ -137,3 +137,23 @@
 - **Inspector:** PASSED
 - **Backup location:** /mnt/agents/output/rescue/ + bundles/ (artefak semua page agents)
 - **coldstart.md stored at:** /mnt/agents/work/pesat-board/coldstart.md
+
+## [2026-08-03 09:45] — Fix 404 board.pesat.ai + Nyalakan backend
+
+- **Type:** OPS/FIX
+- **Status:** COMPLETED
+- **Versi berjalan:** v1.07 (master) / main repo
+- **Files touched:** /etc/nginx/sites-available/pesat-board (config baru = deploy/nginx-board.conf; config lama dibackup), PM2 pesat-board-server (dist/index.js, port 3400)
+- **Key decisions:**
+  - Root cause 404 total: config nginx di VPS masih versi kuno (174 byte) — statis tanpa SPA fallback, tanpa proxy /api/ & /socket.io/. Semua route selain / → 404 nginx; /api/health ikut 404.
+  - Fix: pasang deploy/nginx-board.conf dari repo (SPA fallback /index.html + proxy /api/ ke :3400 + /socket.io/ websocket + /uploads/) → nginx -t OK → systemctl reload nginx.
+  - Backend tidak berjalan (tidak terdaftar di PM2, port 3400 kosong) → pm2 start server/ecosystem.config.cjs + pm2 save. Kini online, autorestart aktif, survive restart.
+  - Akses VPS dari Windows: SSH root@94.100.26.189 (hostname jdp-claw), OpenSSH + SSH_ASKPASS.
+- **Known issues:**
+  - Health backend {"ok":true,"wa":0} → sesi WhatsApp/Baileys belum connect (wa:0); QR scan ulang bila perlu.
+  - Frontend di server (app dir, 23 Jul) kemungkinan lebih lama dari repo main (batch 14/14) — re-deploy build terbaru bila fitur terbaru belum muncul.
+- **Blockers:** none
+- **Next step:** hard refresh browser (Ctrl+Shift+R) → verifikasi login + board + realtime; re-deploy frontend terbaru; ganti password root VPS (pernah dibagikan via chat).
+- **Inspector:** PASSED
+- **Backup location:** /etc/nginx/sites-available/pesat-board.bak.20260803
+- **coldstart.md stored at:** repo GitHub pesat-board (mirror)
