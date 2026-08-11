@@ -157,3 +157,26 @@
 - **Inspector:** PASSED
 - **Backup location:** /etc/nginx/sites-available/pesat-board.bak.20260803
 - **coldstart.md stored at:** repo GitHub pesat-board (mirror)
+
+## [2026-08-03 11:30] — Workspace Invitation Flow Enhancement
+
+- **Type:** FEATURE
+- **Status:** COMPLETED
+- **Versi berjalan:** v1.07 (main)
+- **Files touched:** server/prisma/schema.prisma, server/prisma/migrations/0002_invite_enhancements/migration.sql, server/src/routes/workspaces.ts, src/lib/api.ts, src/components/AppSidebar.tsx, src/pages/HomePage.tsx, src/pages/InviteAcceptPage.tsx, src/pages/AccountWorkspacesPage.tsx (NEW), src/pages/SettingsPage.tsx
+- **Key decisions:**
+  - Enhanced Invite model: added expiresAt (7 days default), invitedById (FK to User), acceptedAt timestamp.
+  - Backend invite accept: added expiry check, email mismatch returns 409 with emailMismatch flag for frontend confirmation dialog, force flag to accept with different email, acceptedAt tracking.
+  - Frontend workspace grouping: "Workspace Saya" (OWNER role) and "Bergabung" (non-OWNER) in both Sidebar and Dashboard.
+  - Cache invalidation via CustomEvent 'workspaces:changed' — consistent with existing recent.ts pattern, no React Query dependency.
+  - Enhanced InviteAcceptPage: handles 409 email mismatch with confirmation dialog (continue with current email or switch account).
+  - New AccountWorkspacesPage at Settings > Workspaces: lists all workspaces with role chip, "Keluar" button for non-owner workspaces.
+  - Kept existing role system (OWNER/ADMIN/MEMBER/VIEWER) — no board-level membership (workspace-level is correct Trello model).
+- **Known issues:**
+  - TypeScript build not verified locally (npm install slow on Windows) — will verify on VPS deployment.
+  - Migration 0002 needs to be run on VPS database before deploy.
+- **Blockers:** none
+- **Next step:** deploy to VPS (run migration + rebuild backend + rebuild frontend); verify invite flow end-to-end.
+- **Inspector:** PENDING (needs VPS deploy + test)
+- **Backup location:** none (new feature, no existing data modified)
+- **coldstart.md stored at:** repo GitHub pesat-board (mirror)
