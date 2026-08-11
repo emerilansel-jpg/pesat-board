@@ -60,6 +60,7 @@ model User {
   activities       Activity[]
   waMessages       WaMessage[]
   inboxItems       InboxItem[]
+  sentInvites      Invite[]   @relation("InviteSender")
 }
 
 model WaSession {
@@ -96,14 +97,18 @@ model WorkspaceMember {
 }
 
 model Invite {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   email       String
-  role        Role     @default(MEMBER)
-  token       String   @unique
-  status      String   @default("PENDING")
-  createdAt   DateTime @default(now())
+  role        Role      @default(MEMBER)
+  token       String    @unique
+  status      String    @default("PENDING")
+  invitedById String?
+  invitedBy   User?     @relation("InviteSender", fields: [invitedById], references: [id], onDelete: SetNull)
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime  @default(now())
 }
 
 model Board {

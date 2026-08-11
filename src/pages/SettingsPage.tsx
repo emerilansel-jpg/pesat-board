@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bell, Lock, Palette, User as UserIcon } from 'lucide-react'
+import { Bell, Building2, Lock, Palette, User as UserIcon } from 'lucide-react'
 import WaIcon from '@/components/WaIcon'
 import { api } from '@/lib/api'
 import { onSocketEvent } from '@/lib/socket'
@@ -16,10 +16,12 @@ import WhatsappTab from '@/features/settings/WhatsappTab'
 import NotificationsTab from '@/features/settings/NotificationsTab'
 import SecurityTab from '@/features/settings/SecurityTab'
 import AppearanceTab from '@/features/settings/AppearanceTab'
+import AccountWorkspacesPage from '@/pages/AccountWorkspacesPage'
 
 const TABS = [
   { id: 'profil', label: 'Profil', icon: UserIcon },
   { id: 'whatsapp', label: 'WhatsApp', icon: WaIcon },
+  { id: 'workspaces', label: 'Workspaces', icon: Building2 },
   { id: 'notifikasi', label: 'Notifikasi', icon: Bell },
   { id: 'keamanan', label: 'Keamanan', icon: Lock },
   { id: 'tampilan', label: 'Tampilan', icon: Palette },
@@ -113,6 +115,7 @@ export default function SettingsPage() {
             >
               {tab === 'profil' && <ProfileTab />}
               {tab === 'whatsapp' && <WhatsappTab autoConnect={autoConnect} />}
+              {tab === 'workspaces' && <AccountWorkspacesPage />}
               {tab === 'notifikasi' && <NotificationsTab />}
               {tab === 'keamanan' && <SecurityTab />}
               {tab === 'tampilan' && <AppearanceTab />}

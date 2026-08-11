@@ -109,6 +109,9 @@ export default function HomePage() {
 
   useEffect(() => {
     void load()
+    const onWorkspacesChanged = () => void load()
+    window.addEventListener('workspaces:changed', onWorkspacesChanged)
+    return () => window.removeEventListener('workspaces:changed', onWorkspacesChanged)
   }, [load])
 
   const activeBoards = useCallback(
@@ -391,86 +394,112 @@ export default function HomePage() {
               </>
             )}
 
-            {/* Section 4 — Per workspace (accordion) */}
-            {workspaces.map((ws) => {
-              const boards = activeBoards(ws)
-              const isCollapsed = !!collapsed[ws.id]
-              const [from, to] = workspaceGradient(ws.id)
-              return (
-                <section key={ws.id} aria-label={`Workspace ${ws.name}`}>
-                  <div className="mb-3 flex items-center gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => setCollapsed((c) => ({ ...c, [ws.id]: !c[ws.id] }))}
-                      className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
-                      aria-expanded={!isCollapsed}
-                    >
-                      <span
-                        className="flex size-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
-                        style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
-                        aria-hidden="true"
-                      >
-                        {ws.name.slice(0, 1).toUpperCase()}
-                      </span>
-                      <span className="truncate text-base font-bold leading-6 tracking-[-0.01em] text-ink-900">
-                        {ws.name}
-                      </span>
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-sunken px-2 py-0.5 text-[11px] font-medium text-ink-500">
-                        <Lock className="size-3" /> Privat
-                      </span>
-                      <span className="shrink-0 text-xs text-ink-400 tnum">{boards.length} board</span>
-                      <ChevronDown
-                        className={cn(
-                          'size-4 shrink-0 text-ink-400 transition-transform duration-200',
-                          isCollapsed && '-rotate-90',
-                        )}
-                      />
-                    </button>
-                    <Link
-                      to={`/w/${ws.slug}`}
-                      className="shrink-0 text-[13px] font-semibold text-ink-500 transition-colors duration-150 hover:text-brand-600"
-                    >
-                      Lihat semua board →
-                    </Link>
-                  </div>
-
-                  <AnimatePresence initial={false}>
-                    {!isCollapsed && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.24, ease: EASE_OUT_EXPO }}
-                        className="overflow-hidden"
-                      >
-                        <div className={TILE_RAIL}>
-                          {boards.map((board, i) => (
-                            <motion.div
-                              key={board.id}
-                              className={TILE_ITEM}
-                              initial={{ opacity: 0, y: 12 }}
-                              whileInView={{ opacity: 1, y: 0 }}
-                              viewport={{ once: true, amount: 0.15 }}
-                              transition={{ duration: 0.3, delay: i * 0.04, ease: EASE_OUT_EXPO }}
+            {/* Section 4 — Per workspace (accordion), grouped: owned then joined */}
+            {(() => {
+              const owned = workspaces.filter((ws) => ws.role === 'OWNER')
+              const joined = workspaces.filter((ws) => ws.role !== 'OWNER')
+              const groups: { label?: string; items: WorkspaceSummary[] }[] = []
+              if (owned.length > 0 && joined.length > 0) {
+                groups.push({ label: 'Workspace Saya', items: owned })
+                groups.push({ label: 'Bergabung', items: joined })
+              } else {
+                groups.push({ items: workspaces })
+              }
+              return groups.map((group) => (
+                <div key={group.label ?? 'all'}>
+                  {group.label && (
+                    <h3 className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-[0.04em] text-ink-400">
+                      {group.label}
+                    </h3>
+                  )}
+                  {group.items.map((ws) => {
+                    const boards = activeBoards(ws)
+                    const isCollapsed = !!collapsed[ws.id]
+                    const [from, to] = workspaceGradient(ws.id)
+                    return (
+                      <section key={ws.id} aria-label={`Workspace ${ws.name}`}>
+                        <div className="mb-3 flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => setCollapsed((c) => ({ ...c, [ws.id]: !c[ws.id] }))}
+                            className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
+                            aria-expanded={!isCollapsed}
+                          >
+                            <span
+                              className="flex size-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
+                              style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
+                              aria-hidden="true"
                             >
-                              <BoardTileMenu
-                                board={board}
-                                workspaceName={ws.name}
-                                onToggleStar={toggleStar}
-                                onArchive={(b) =>
-                                  setArchiveTarget({ board: b, workspaceId: ws.id })
-                                }
-                              />
-                            </motion.div>
-                          ))}
-                          <CreateBoardTile onClick={() => openCreateBoard(ws.id)} />
+                              {ws.name.slice(0, 1).toUpperCase()}
+                            </span>
+                            <span className="truncate text-base font-bold leading-6 tracking-[-0.01em] text-ink-900">
+                              {ws.name}
+                            </span>
+                            {ws.role === 'OWNER' ? (
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-sunken px-2 py-0.5 text-[11px] font-medium text-ink-500">
+                                <Lock className="size-3" /> Privat
+                              </span>
+                            ) : (
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700">
+                                {ws.role}
+                              </span>
+                            )}
+                            <span className="shrink-0 text-xs text-ink-400 tnum">{boards.length} board</span>
+                            <ChevronDown
+                              className={cn(
+                                'size-4 shrink-0 text-ink-400 transition-transform duration-200',
+                                isCollapsed && '-rotate-90',
+                              )}
+                            />
+                          </button>
+                          <Link
+                            to={`/w/${ws.slug}`}
+                            className="shrink-0 text-[13px] font-semibold text-ink-500 transition-colors duration-150 hover:text-brand-600"
+                          >
+                            Lihat semua board →
+                          </Link>
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </section>
-              )
-            })}
+
+                        <AnimatePresence initial={false}>
+                          {!isCollapsed && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.24, ease: EASE_OUT_EXPO }}
+                              className="overflow-hidden"
+                            >
+                              <div className={TILE_RAIL}>
+                                {boards.map((board, i) => (
+                                  <motion.div
+                                    key={board.id}
+                                    className={TILE_ITEM}
+                                    initial={{ opacity: 0, y: 12 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, amount: 0.15 }}
+                                    transition={{ duration: 0.3, delay: i * 0.04, ease: EASE_OUT_EXPO }}
+                                  >
+                                    <BoardTileMenu
+                                      board={board}
+                                      workspaceName={ws.name}
+                                      onToggleStar={toggleStar}
+                                      onArchive={(b) =>
+                                        setArchiveTarget({ board: b, workspaceId: ws.id })
+                                      }
+                                    />
+                                  </motion.div>
+                                ))}
+                                <CreateBoardTile onClick={() => openCreateBoard(ws.id)} />
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </section>
+                    )
+                  })}
+                </div>
+              ))
+            })()}
 
             {/* Buat workspace baru */}
             <div>

@@ -118,23 +118,41 @@ export default async function workspaceRoutes(app: FastifyInstance) {
     if (already) throw conflict('User sudah menjadi anggota');
 
     const invite = await prisma.invite.create({
-      data: { workspaceId: id, email, role, token: nanoid(24) },
+      data: {
+        workspaceId: id,
+        email,
+        role,
+        token: nanoid(24),
+        invitedById: req.user.sub,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
     });
     const base = config.allowedOrigins[0] ?? 'http://localhost:5173';
     return { invite, inviteLink: `${base}/invite/${invite.token}` };
   });
 
   // POST /workspaces/invites/:token/accept
-  app.post('/workspaces/invites/:token/accept', async (req) => {
+  app.post('/workspaces/invites/:token/accept', async (req, reply) => {
     const { token } = params<{ token: string }>(req.params);
+    const b = body<{ force?: unknown }>(req.body);
+    const force = b.force === true;
+
     const invite = await prisma.invite.findUnique({ where: { token }, include: { workspace: true } });
     if (!invite) throw notFound('Undangan tidak ditemukan');
     if (invite.status !== 'PENDING') throw badRequest('Undangan sudah dipakai atau dibatalkan');
+    if (invite.expiresAt < new Date()) throw badRequest('Undangan sudah kedaluwarsa');
 
     const me = await prisma.user.findUnique({ where: { id: req.user.sub } });
     if (!me) throw notFound('User tidak ditemukan');
-    if (me.email.toLowerCase() !== invite.email.toLowerCase()) {
-      throw forbidden('Undangan ini ditujukan untuk email lain');
+
+    // Email mismatch: return 409 so frontend can show confirmation dialog
+    if (me.email.toLowerCase() !== invite.email.toLowerCase() && !force) {
+      return reply.code(409).send({
+        emailMismatch: true,
+        invitedEmail: invite.email,
+        currentEmail: me.email,
+        message: 'Undangan ini ditujukan untuk email lain',
+      });
     }
 
     const existing = await prisma.workspaceMember.findUnique({
@@ -146,9 +164,12 @@ export default async function workspaceRoutes(app: FastifyInstance) {
       prisma.workspaceMember.create({
         data: { workspaceId: invite.workspaceId, userId: me.id, role: invite.role },
       }),
-      prisma.invite.update({ where: { id: invite.id }, data: { status: 'ACCEPTED' } }),
+      prisma.invite.update({
+        where: { id: invite.id },
+        data: { status: 'ACCEPTED', acceptedAt: new Date() },
+      }),
     ]);
-    return { workspace: invite.workspace, role: invite.role };
+    return { workspace: invite.workspace, role: invite.role, redirectUrl: `/w/${invite.workspace.slug}` };
   });
 
   // PATCH /workspaces/:id/members/:userId {role}

@@ -75,18 +75,26 @@ function SidebarBody({ waInboxCount = 0, onNavigate }: { waInboxCount?: number; 
   const [openWs, setOpenWs] = useState<string | null>(null)
   const [waStatus, setWaStatus] = useState<WaConnectionStatus>('DISCONNECTED')
 
-  useEffect(() => {
+  const fetchWorkspaces = () => {
     api
       .listWorkspaces()
       .then((r) => {
         setWorkspaces(r.workspaces)
-        if (r.workspaces[0]) setOpenWs(r.workspaces[0].id)
+        if (!openWs && r.workspaces[0]) setOpenWs(r.workspaces[0].id)
       })
       .catch(() => setWorkspaces([]))
+  }
+
+  useEffect(() => {
+    fetchWorkspaces()
     api
       .waStatus()
       .then((r) => setWaStatus(r.status))
       .catch(() => setWaStatus('DISCONNECTED'))
+
+    const onWorkspacesChanged = () => fetchWorkspaces()
+    window.addEventListener('workspaces:changed', onWorkspacesChanged)
+    return () => window.removeEventListener('workspaces:changed', onWorkspacesChanged)
   }, [])
 
   return (
@@ -124,52 +132,117 @@ function SidebarBody({ waInboxCount = 0, onNavigate }: { waInboxCount?: number; 
         {workspaces.length === 0 && (
           <p className="px-3 py-2 text-[13px] text-ink-400">Belum ada workspace.</p>
         )}
-        {workspaces.map((ws) => {
-          const open = openWs === ws.id
+        {/* Workspace Saya (owned) */}
+        {(() => {
+          const owned = workspaces.filter((ws) => ws.role === 'OWNER')
+          const joined = workspaces.filter((ws) => ws.role !== 'OWNER')
           return (
-            <div key={ws.id} className="mb-0.5">
-              <button
-                type="button"
-                onClick={() => setOpenWs(open ? null : ws.id)}
-                aria-expanded={open}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-brand-50"
-              >
-                <span
-                  className="flex size-5 items-center justify-center rounded text-[10px] font-bold text-white"
-                  style={{ backgroundColor: workspaceColor(ws.id) }}
-                >
-                  {ws.name.slice(0, 1).toUpperCase()}
-                </span>
-                <span className="flex-1 truncate text-left">{ws.name}</span>
-                <ChevronDown
-                  className={cn('size-4 text-ink-400 transition-transform duration-150', open && 'rotate-180')}
-                />
-              </button>
-              {open && (
-                <div className="ml-4 flex flex-col gap-0.5 border-l border-line pl-3 pt-0.5">
-                  <NavItem
-                    to={`/w/${ws.slug}`}
-                    icon={<KanbanSquare className="size-4" />}
-                    label="Boards"
-                    onClick={onNavigate}
-                  />
-                  <NavItem
-                    to={`/w/${ws.slug}/members`}
-                    icon={<Users className="size-4" />}
-                    label="Members"
-                    onClick={onNavigate}
-                  />
-                  <NavItem
-                    to={`/w/${ws.slug}/activity`}
-                    icon={<ActivityIcon className="size-4" />}
-                    label="Activity"
-                    onClick={onNavigate}
-                  />
-                </div>
+            <>
+              {owned.length > 0 && joined.length > 0 && (
+                <p className="mb-1 mt-2 px-3 text-[11px] font-semibold uppercase tracking-[0.04em] text-ink-400">
+                  Workspace Saya
+                </p>
               )}
-            </div>
+              {owned.map((ws) => {
+                const open = openWs === ws.id
+                return (
+                  <div key={ws.id} className="mb-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setOpenWs(open ? null : ws.id)}
+                      aria-expanded={open}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-brand-50"
+                    >
+                      <span
+                        className="flex size-5 items-center justify-center rounded text-[10px] font-bold text-white"
+                        style={{ backgroundColor: workspaceColor(ws.id) }}
+                      >
+                        {ws.name.slice(0, 1).toUpperCase()}
+                      </span>
+                      <span className="flex-1 truncate text-left">{ws.name}</span>
+                      <ChevronDown
+                        className={cn('size-4 text-ink-400 transition-transform duration-150', open && 'rotate-180')}
+                      />
+                    </button>
+                    {open && (
+                      <div className="ml-4 flex flex-col gap-0.5 border-l border-line pl-3 pt-0.5">
+                        <NavItem
+                          to={`/w/${ws.slug}`}
+                          icon={<KanbanSquare className="size-4" />}
+                          label="Boards"
+                          onClick={onNavigate}
+                        />
+                        <NavItem
+                          to={`/w/${ws.slug}/members`}
+                          icon={<Users className="size-4" />}
+                          label="Members"
+                          onClick={onNavigate}
+                        />
+                        <NavItem
+                          to={`/w/${ws.slug}/activity`}
+                          icon={<ActivityIcon className="size-4" />}
+                          label="Activity"
+                          onClick={onNavigate}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+              {joined.length > 0 && (
+                <p className="mb-1 mt-3 px-3 text-[11px] font-semibold uppercase tracking-[0.04em] text-ink-400">
+                  Bergabung
+                </p>
+              )}
+              {joined.map((ws) => {
+                const open = openWs === ws.id
+                return (
+                  <div key={ws.id} className="mb-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setOpenWs(open ? null : ws.id)}
+                      aria-expanded={open}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-brand-50"
+                    >
+                      <span
+                        className="flex size-5 items-center justify-center rounded text-[10px] font-bold text-white"
+                        style={{ backgroundColor: workspaceColor(ws.id) }}
+                      >
+                        {ws.name.slice(0, 1).toUpperCase()}
+                      </span>
+                      <span className="flex-1 truncate text-left">{ws.name}</span>
+                      <ChevronDown
+                        className={cn('size-4 text-ink-400 transition-transform duration-150', open && 'rotate-180')}
+                      />
+                    </button>
+                    {open && (
+                      <div className="ml-4 flex flex-col gap-0.5 border-l border-line pl-3 pt-0.5">
+                        <NavItem
+                          to={`/w/${ws.slug}`}
+                          icon={<KanbanSquare className="size-4" />}
+                          label="Boards"
+                          onClick={onNavigate}
+                        />
+                        <NavItem
+                          to={`/w/${ws.slug}/members`}
+                          icon={<Users className="size-4" />}
+                          label="Members"
+                          onClick={onNavigate}
+                        />
+                        <NavItem
+                          to={`/w/${ws.slug}/activity`}
+                          icon={<ActivityIcon className="size-4" />}
+                          label="Activity"
+                          onClick={onNavigate}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </>
           )
-        })}
+        })()}
       </div>
 
       {/* Footer mini: status WA + versi */}

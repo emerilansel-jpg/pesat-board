@@ -8,10 +8,12 @@ export const TOKEN_KEY = 'pb_token'
 
 export class ApiError extends Error {
   status: number
-  constructor(message: string, status: number) {
+  data?: Record<string, unknown>
+  constructor(message: string, status: number, data?: Record<string, unknown>) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.data = data
   }
 }
 
@@ -57,7 +59,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!res.ok) {
     const message =
       (data as { message?: string } | undefined)?.message ?? `Permintaan gagal (${res.status})`
-    throw new ApiError(message, res.status)
+    throw new ApiError(message, res.status, data as Record<string, unknown> | undefined)
   }
   return data as T
 }
@@ -213,6 +215,21 @@ export interface SearchResults {
 
 export type WaConnectionStatus = 'DISCONNECTED' | 'CONNECTING' | 'CONNECTED'
 
+export interface InviteAcceptResponse {
+  workspace: { id: string; name: string; slug: string }
+  role: string
+  redirectUrl?: string
+  emailMismatch?: boolean
+  invitedEmail?: string
+  currentEmail?: string
+  message?: string
+}
+
+/** Fire this event to trigger workspace list re-fetch in sidebar/dashboard */
+export function emitWorkspacesChanged() {
+  window.dispatchEvent(new CustomEvent('workspaces:changed'))
+}
+
 export interface WaInboxItem {
   id: string
   fromPhone: string
@@ -260,9 +277,10 @@ export const api = {
   deleteWorkspace: (id: string) => del<void>(`/workspaces/${id}`),
   inviteToWorkspace: (id: string, body: { email: string; role: string }) =>
     post<{ inviteLink: string }>(`/workspaces/${id}/invite`, body),
-  acceptInvite: (token: string) =>
-    post<{ workspace: { id: string; name: string; slug: string }; role: string }>(
+  acceptInvite: (token: string, force?: boolean) =>
+    post<InviteAcceptResponse>(
       `/invites/${token}/accept`,
+      force ? { force: true } : undefined,
     ),
   updateMemberRole: (workspaceId: string, userId: string, body: { role: string }) =>
     patch<void>(`/workspaces/${workspaceId}/members/${userId}`, body),
