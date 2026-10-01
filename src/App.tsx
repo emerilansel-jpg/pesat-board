@@ -14,6 +14,7 @@ import SettingsPage from '@/pages/SettingsPage'
 import InviteAcceptPage from '@/pages/InviteAcceptPage'
 import VersionPage from '@/pages/VersionPage'
 import NotFoundPage from '@/pages/NotFoundPage'
+import { BASE } from '@/lib/base'
 
 /**
  * /version PUBLIK (footer login/register menautkannya) — namun user ter-login
@@ -27,7 +28,7 @@ function VersionEntry() {
         <div className="fixed inset-x-0 top-0 h-0.5 overflow-hidden bg-brand-100">
           <div className="h-full w-1/3 animate-shimmer bg-brand-600" />
         </div>
-        <img src="/logo-mark.svg" alt="Pesat Board" className="h-12 w-12 animate-pulse" />
+        <img src={BASE + "/logo-mark.svg"} alt="Pesat Board" className="h-12 w-12 animate-pulse" />
       </div>
     )
   }

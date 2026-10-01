@@ -14,6 +14,7 @@ import { latestVersion, versions } from '@/data/versions'
 import ReleaseEntry from '@/features/version/ReleaseEntry'
 import VersionRail from '@/features/version/VersionRail'
 import { anchorId } from '@/features/version/version-utils'
+import { BASE } from '@/lib/base'
 
 export default function VersionPage() {
   const [activeVersion, setActiveVersion] = useState<string | null>(versions[0]?.version ?? null)
@@ -53,7 +54,7 @@ export default function VersionPage() {
   }, [location.hash])
 
   const copyLatestLink = async () => {
-    const url = `${window.location.origin}/version#${anchorId(latestVersion)}`
+    const url = `${window.location.origin}${BASE}/version#${anchorId(latestVersion)}`
     try {
       await navigator.clipboard.writeText(url)
       toast.success('Tautan disalin')

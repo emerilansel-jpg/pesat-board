@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import { toast } from '@/components/Toast'
 import WaIcon from '@/components/WaIcon'
 import { cn } from '@/lib/utils'
+import { BASE } from '@/lib/base'
 
 const SPRING_GENTLE = { type: 'spring', stiffness: 300, damping: 30 } as const
 
@@ -74,7 +75,7 @@ export function OnboardingWizard({ name }: { name: string }) {
             className="flex flex-col items-center text-center"
           >
             <motion.img
-              src="/empty-boards.svg"
+              src={BASE + "/empty-boards.svg"}
               alt=""
               aria-hidden="true"
               initial={{ opacity: 0, scale: 0.92 }}

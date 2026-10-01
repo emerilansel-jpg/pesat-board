@@ -5,6 +5,7 @@
 import { format, isToday, isYesterday } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import type { WaInboxItem } from '@/lib/api'
+import { UPLOADS_BASE } from '@/lib/base'
 
 export type InboxStatus = 'pending' | 'linked' | 'ignored'
 
@@ -119,10 +120,10 @@ export function mediaKind(mediaPath?: string | null): MediaKind | null {
   return 'doc'
 }
 
-/** URL media yang bisa diakses (file dilayani via /uploads/<path>). */
+/** URL media yang bisa diakses (file dilayani via UPLOADS_BASE/<path>). */
 export function mediaUrl(mediaPath: string): string {
   if (/^(https?:)?\/\//.test(mediaPath) || mediaPath.startsWith('/')) return mediaPath
-  return `/uploads/${mediaPath}`
+  return `${UPLOADS_BASE}/${mediaPath}`
 }
 
 export function fileNameFromPath(mediaPath: string): string {

@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { cn } from '@/lib/utils'
+import { BASE } from '@/lib/base'
 
 gsap.registerPlugin(useGSAP)
 
@@ -149,7 +150,7 @@ export function AuthBrandPanel({ compact = false }: { compact?: boolean }) {
           style={{ backgroundImage: 'url(/auth-pattern.svg)', backgroundSize: '400px' }}
           aria-hidden="true"
         />
-        <img src="/logo-white.svg" alt="Pesat Board" className="relative h-10 w-auto" />
+        <img src={BASE + "/logo-white.svg"} alt="Pesat Board" className="relative h-10 w-auto" />
         <p className="relative text-sm text-violet-100">Kerja tim rapi. WhatsApp tetap nyambung.</p>
       </div>
     )
@@ -173,7 +174,7 @@ export function AuthBrandPanel({ compact = false }: { compact?: boolean }) {
       />
 
       <Link to="/" className="relative" aria-label="Pesat Board">
-        <img src="/logo-white.svg" alt="Pesat Board" className="h-10 w-auto" />
+        <img src={BASE + "/logo-white.svg"} alt="Pesat Board" className="h-10 w-auto" />
       </Link>
 
       <div className="relative mt-14 max-w-[420px]">

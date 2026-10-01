@@ -21,6 +21,7 @@ import {
 import { api, type WaConnectionStatus, type WorkspaceSummary } from '@/lib/api'
 import { latestVersion } from '@/data/versions'
 import WaIcon from './WaIcon'
+import { BASE } from '@/lib/base'
 
 const WORKSPACE_COLORS = ['#7C3AED', '#2563EB', '#0D9488', '#D97706', '#DB2777', '#16A34A']
 
@@ -224,7 +225,7 @@ export function AppSidebar({
       <aside className="sticky top-0 hidden h-[100dvh] w-[260px] shrink-0 border-r border-line bg-white lg:block">
         <div className="flex h-[52px] items-center px-4 shadow-navbar">
           <Link to="/" className="flex items-center gap-2" aria-label="Pesat Board — beranda">
-            <img src="/logo-mark.svg" alt="" className="size-7" />
+            <img src={BASE + "/logo-mark.svg"} alt="" className="size-7" />
             <span className="text-lg font-bold text-ink-900">
               Pesat <span className="text-brand-600">Board</span>
             </span>
@@ -243,7 +244,7 @@ export function AppSidebar({
             <SheetDescription>Navigasi utama Pesat Board</SheetDescription>
           </SheetHeader>
           <div className="flex h-[52px] items-center px-4 shadow-navbar">
-            <img src="/logo-mark.svg" alt="" className="size-7" />
+            <img src={BASE + "/logo-mark.svg"} alt="" className="size-7" />
             <span className="ml-2 text-lg font-bold text-ink-900">
               Pesat <span className="text-brand-600">Board</span>
             </span>

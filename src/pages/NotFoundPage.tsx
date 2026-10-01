@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { BASE } from '@/lib/base'
 
 /** 404 — ilustrasi empty-404.svg + tombol kembali (design.md §7.7, §13). */
 export default function NotFoundPage() {
@@ -14,13 +15,13 @@ export default function NotFoundPage() {
         className="flex flex-col items-center"
       >
         <img
-          src="/logo.svg"
+          src={BASE + "/logo.svg"}
           alt="Pesat Board"
           className="mb-8 h-9 w-auto select-none"
           draggable={false}
         />
         <motion.img
-          src="/empty-404.svg"
+          src={BASE + "/empty-404.svg"}
           alt=""
           aria-hidden="true"
           initial={{ opacity: 0, scale: 0.94 }}

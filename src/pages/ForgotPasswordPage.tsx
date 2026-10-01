@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { api } from '@/lib/api'
 import AuthBrandPanel from '@/components/AuthBrandPanel'
 import { latestVersion } from '@/data/versions'
+import { BASE } from '@/lib/base'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const RESEND_COOLDOWN = 60
@@ -123,7 +124,7 @@ export default function ForgotPasswordPage() {
                 transition={{ duration: 0.2 }}
               >
                 <img
-                  src="/logo-mark.svg"
+                  src={BASE + "/logo-mark.svg"}
                   alt=""
                   className="mb-5 hidden size-9 lg:block"
                   aria-hidden="true"

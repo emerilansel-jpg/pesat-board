@@ -14,6 +14,7 @@ import {
 import { Navigate, useLocation } from 'react-router'
 import { api, ApiError, getToken, setToken, type User } from './api'
 import { connectSocket, disconnectSocket } from './socket'
+import { BASE } from '@/lib/base'
 
 interface AuthContextValue {
   user: User | null
@@ -122,7 +123,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
         <div className="fixed inset-x-0 top-0 h-0.5 overflow-hidden bg-brand-100">
           <div className="h-full w-1/3 animate-shimmer bg-brand-600" />
         </div>
-        <img src="/logo-mark.svg" alt="Pesat Board" className="h-12 w-12 animate-pulse" />
+        <img src={BASE + "/logo-mark.svg"} alt="Pesat Board" className="h-12 w-12 animate-pulse" />
       </div>
     )
   }
@@ -132,7 +133,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     if (error) {
       return (
         <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-3 bg-canvas px-6 text-center">
-          <img src="/logo-mark.svg" alt="Pesat Board" className="h-12 w-12" />
+          <img src={BASE + "/logo-mark.svg"} alt="Pesat Board" className="h-12 w-12" />
           <p className="text-sm font-medium text-ink-900">Gagal memuat sesi Anda</p>
           <p className="text-[13px] text-ink-500">{error}</p>
           <button

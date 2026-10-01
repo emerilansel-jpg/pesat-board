@@ -10,6 +10,7 @@ import Avatar from '@/components/Avatar'
 import WaIcon from '@/components/WaIcon'
 import { toast } from '@/components/Toast'
 import { useBoardStore } from './store'
+import { BASE } from '@/lib/base'
 
 export function ShareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { board, members } = useBoardStore()
@@ -18,7 +19,7 @@ export function ShareModal({ open, onClose }: { open: boolean; onClose: () => vo
   const [copied, setCopied] = useState(false)
   const [linkActive, setLinkActive] = useState(true)
 
-  const link = board ? `${window.location.origin}/b/${board.id}/${board.slug}` : ''
+  const link = board ? `${window.location.origin}${BASE}/b/${board.id}/${board.slug}` : ''
 
   const copy = async () => {
     try {

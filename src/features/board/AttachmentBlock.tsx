@@ -33,11 +33,12 @@ import { toast } from '@/components/Toast'
 import { cn } from '@/lib/utils'
 import { useBoardStore } from './store'
 import { attachmentFromWa, formatBytes, timeAgo } from './utils'
+import { UPLOADS_BASE } from '@/lib/base'
 
 const isImage = (a: Attachment) => a.mimeType.startsWith('image/')
 const isAudio = (a: Attachment) => a.mimeType.startsWith('audio/')
 const fileUrl = (a: Attachment) =>
-  a.filePath.startsWith('http') ? a.filePath : `/uploads/${a.filePath.replace(/^\/+/, '').replace(/^uploads\//, '')}`
+  a.filePath.startsWith('http') ? a.filePath : `${UPLOADS_BASE}/${a.filePath.replace(/^\/+/, '').replace(/^uploads\//, '')}`
 
 export function AttachmentSection({ cardId }: { cardId: string }) {
   const attachments = useBoardStore((s) => s.cardDetail?.attachments ?? [])

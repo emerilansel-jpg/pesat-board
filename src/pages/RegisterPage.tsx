@@ -8,6 +8,7 @@ import { ApiError } from '@/lib/api'
 import AuthBrandPanel from '@/components/AuthBrandPanel'
 import OnboardingWizard from '@/features/auth/OnboardingWizard'
 import { latestVersion } from '@/data/versions'
+import { BASE } from '@/lib/base'
 
 function GoogleIcon() {
   return (
@@ -183,7 +184,7 @@ export default function RegisterPage() {
               className="mx-auto w-full max-w-[400px] lg:rounded-2xl lg:bg-white lg:p-8 lg:shadow-pop"
             >
               <img
-                src="/logo-mark.svg"
+                src={BASE + "/logo-mark.svg"}
                 alt=""
                 className="mb-5 hidden size-9 lg:block"
                 aria-hidden="true"

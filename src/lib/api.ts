@@ -1,8 +1,11 @@
 /**
  * API client Pesat Board — sesuai contracts/api-contract.md.
- * Base URL: same-origin `/api` (dev Vite proxy → http://localhost:3400).
+ * Base URL: `API_BASE` dari lib/base (dev: same-origin `/api` via Vite proxy;
+ * produksi: `/api/board` dilayani gateway → backend :3400).
  * JWT Bearer di header Authorization, token dari localStorage `pb_token`.
  */
+
+import { API_BASE, BASE } from './base'
 
 export const TOKEN_KEY = 'pb_token'
 
@@ -35,14 +38,15 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
-  const res = await fetch(`/api${path}`, { ...init, headers })
+  const res = await fetch(`${API_BASE}${path}`, { ...init, headers })
   if (res.status === 204) return undefined as T
 
   // 401 global di luar endpoint auth → token tidak valid/kedaluwarsa: bersihkan
-  // sesi lalu hard redirect ke /login (hindari loop render state React basi).
+  // sesi lalu hard redirect ke halaman login (di bawah BASE subpath).
   if (res.status === 401 && !AUTH_ENDPOINTS_NO_REDIRECT.test(path)) {
     localStorage.removeItem(TOKEN_KEY)
-    if (location.pathname !== '/login') location.href = '/login'
+    const loginPath = `${BASE}/login`
+    if (location.pathname !== loginPath) location.href = loginPath
   }
 
   const text = await res.text()

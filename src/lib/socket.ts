@@ -4,6 +4,7 @@
  */
 import { io, type Socket } from 'socket.io-client'
 import { getToken } from './api'
+import { SOCKET_PATH } from './base'
 import type {
   CardSummary,
   Checklist,
@@ -65,7 +66,7 @@ let socket: AppSocket | null = null
 export function getSocket(): AppSocket {
   if (socket) return socket
   socket = io({
-    path: '/socket.io',
+    path: SOCKET_PATH,
     auth: { token: getToken() },
     autoConnect: false,
   })

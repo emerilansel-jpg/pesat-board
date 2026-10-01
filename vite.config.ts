@@ -6,7 +6,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/',
+  // Deploy di bawah /smart/board/ (pesat.app/smart/board/)
+  base: process.env.VITE_BASE ?? '/smart/board/',
   plugins: [
     inspectAttr(),
     react(),
@@ -18,8 +19,8 @@ export default defineConfig({
         short_name: 'Pesat',
         description: 'Kanban tim dengan WhatsApp dua arah',
         lang: 'id',
-        start_url: '/',
-        scope: '/',
+        start_url: '/smart/board/',
+        scope: '/smart/board/',
         display: 'standalone',
         theme_color: '#7C3AED',
         background_color: '#F8FAFC',
@@ -62,6 +63,7 @@ export default defineConfig({
     proxy: {
       '/api': { target: 'http://localhost:3400', changeOrigin: true },
       '/uploads': { target: 'http://localhost:3400', changeOrigin: true },
+      '/board/socket.io': { target: 'http://localhost:3400', changeOrigin: true, ws: true },
       '/socket.io': { target: 'http://localhost:3400', changeOrigin: true, ws: true },
     },
   },

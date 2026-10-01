@@ -30,6 +30,7 @@ import CreateBoardModal from '@/features/home/CreateBoardModal'
 import CreateWorkspaceModal from '@/features/home/CreateWorkspaceModal'
 import Avatar, { PresenceStack } from './Avatar'
 import WaIcon from './WaIcon'
+import { BASE } from '@/lib/base'
 
 // ---------------------------------------------------------------------------
 // Sub-komponen navbar
@@ -247,7 +248,7 @@ export function TopNavbar({
         >
           <ChevronLeft className="size-5" />
         </Link>
-        <img src="/logo-mark.svg" alt="" className="hidden size-6 md:block" aria-hidden="true" />
+        <img src={BASE + "/logo-mark.svg"} alt="" className="hidden size-6 md:block" aria-hidden="true" />
         {editingTitle ? (
           <input
             autoFocus
@@ -337,7 +338,7 @@ export function TopNavbar({
         <LayoutGrid className="size-5" />
       </button>
       <Link to="/" className="flex items-center gap-2" aria-label="Pesat Board — beranda">
-        <img src="/logo-mark.svg" alt="" className="size-7" />
+        <img src={BASE + "/logo-mark.svg"} alt="" className="size-7" />
         <span className="hidden text-lg font-bold text-ink-900 sm:block">
           Pesat <span className="text-brand-600">Board</span>
         </span>

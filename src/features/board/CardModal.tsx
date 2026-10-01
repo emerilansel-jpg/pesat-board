@@ -43,6 +43,7 @@ import CommentFeed from './CommentFeed'
 import ChecklistSection from './ChecklistBlock'
 import AttachmentSection from './AttachmentBlock'
 import { useIsMobile } from './hooks'
+import { BASE } from '@/lib/base'
 
 export function CardModal({
   cardId,
@@ -737,7 +738,7 @@ function ActionButtons({ onDone }: { onDone?: () => void }) {
           </a>
         )}
         {wa?.status !== 'CONNECTED' && (
-          <a href="/settings?tab=whatsapp" className="mt-1 block text-[13px] font-medium text-brand-600 hover:underline">
+          <a href={BASE + "/settings?tab=whatsapp"} className="mt-1 block text-[13px] font-medium text-brand-600 hover:underline">
             Hubungkan WhatsApp di Pengaturan
           </a>
         )}
