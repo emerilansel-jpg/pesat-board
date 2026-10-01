@@ -2,7 +2,14 @@ import bcrypt from 'bcryptjs';
 import { prisma } from './db.js';
 import { nextPosition } from './positions.js';
 
-const DEMO_PASSWORD = 'demo1234';
+function requireSeedPassword(): string {
+  const pw = process.env.SEED_DEMO_PASSWORD;
+  if (!pw) {
+    throw new Error('SEED_DEMO_PASSWORD env var wajib diset sebelum menjalankan seed');
+  }
+  return pw;
+}
+const DEMO_PASSWORD: string = requireSeedPassword();
 
 async function ensureUser(email: string, name: string) {
   const existing = await prisma.user.findUnique({ where: { email } });

@@ -11,8 +11,13 @@ function required(name: string, fallback?: string): string {
 
 const root = process.cwd();
 
-function resolveDir(p: string): string {
-  return path.isAbsolute(p) ? p : path.resolve(root, p);
+// Guard: env-supplied dirs must stay inside the project root to avoid
+// accidental/malicious writes outside the app (path-traversal via env).
+// Throw unless the resolved path equals root or is strictly inside it.
+function assertInsideRoot(resolved: string): void {
+  if (resolved !== root && !resolved.startsWith(root + path.sep)) {
+    throw new Error(`Direktori di luar root proyek tidak diizinkan: ${resolved}`);
+  }
 }
 
 export const config = {
@@ -23,7 +28,11 @@ export const config = {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean),
-  uploadDir: resolveDir(process.env.UPLOAD_DIR ?? './uploads'),
-  waSessionsDir: resolveDir(process.env.WA_SESSIONS_DIR ?? './wa-sessions'),
+  uploadDir: path.resolve(root, process.env.UPLOAD_DIR ?? './uploads'),
+  waSessionsDir: path.resolve(root, process.env.WA_SESSIONS_DIR ?? './wa-sessions'),
   isProd: process.env.NODE_ENV === 'production',
 } as const;
+
+// Enforce root containment for any env-supplied directory paths above.
+assertInsideRoot(config.uploadDir);
+assertInsideRoot(config.waSessionsDir);
