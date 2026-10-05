@@ -32,7 +32,8 @@ const MAX_RETRIES = 5;
 const BACKOFF_MS = [3_000, 10_000, 30_000, 30_000, 30_000];
 
 function sessionDir(userId: string): string {
-  return path.join(config.waSessionsDir, userId);
+  const safeId = path.basename(userId).replace(/[^a-zA-Z0-9_-]/g, '');
+  return path.join(config.waSessionsDir, safeId);
 }
 
 export function getSession(userId: string): SessionEntry | undefined {

@@ -75,25 +75,28 @@ export default async function waRoutes(app: FastifyInstance) {
     // Bawa media (bila ada) sebagai attachment
     if (item.mediaPath) {
       const stored = item.mediaPath.replace(/^\/uploads\//, '');
-      const full = path.join(config.uploadDir, stored);
-      const ext = path.extname(stored).toLowerCase();
-      let size = 0;
-      try {
-        size = (await fs.stat(full)).size;
-      } catch {
-        // file mungkin sudah tidak ada; tetap catat path-nya
+      const uploadRoot = path.resolve(config.uploadDir);
+      const full = path.resolve(uploadRoot, stored);
+      if (full !== uploadRoot && full.startsWith(uploadRoot + path.sep)) {
+        const ext = path.extname(stored).toLowerCase();
+        let size = 0;
+        try {
+          size = (await fs.stat(full)).size;
+        } catch {
+          // file mungkin sudah tidak ada; tetap catat path-nya
+        }
+        await prisma.attachment.create({
+          data: {
+            cardId,
+            commentId: comment.id,
+            fileName: stored,
+            path: item.mediaPath,
+            mime: MIME_BY_EXT[ext] ?? 'application/octet-stream',
+            size,
+            uploadedById: req.user.sub,
+          },
+        });
       }
-      await prisma.attachment.create({
-        data: {
-          cardId,
-          commentId: comment.id,
-          fileName: stored,
-          path: item.mediaPath,
-          mime: MIME_BY_EXT[ext] ?? 'application/octet-stream',
-          size,
-          uploadedById: req.user.sub,
-        },
-      });
     }
 
     const updated = await prisma.inboxItem.update({
