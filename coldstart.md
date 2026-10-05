@@ -9,19 +9,24 @@
   - Deploy: `vite.config.ts`, `src/lib/base.ts` (BARU), `src/lib/api.ts`, `src/lib/socket.ts`, `src/main.tsx`, `src/features/board/ShareModal.tsx`, `src/pages/VersionPage.tsx`, `src/features/board/AttachmentBlock.tsx`, `src/features/inbox/inbox-utils.ts`
   - Security: `server/src/seed.ts`, `server/src/config.ts`, `server/src/routes/attachments.ts`
 - **Key decisions:**
+  - **Deployment Host (KOREKSI PENTING):** Backend board berjalan di VPS **`148.230.103.98`** (bukan 94.100.26.189/jdp-claw).
+    - SSH: `root@148.230.103.98` via key `~/.ssh/pesat_deploy_rsa`.
+    - Path repo: `/var/www/pesat-board-repo/server`. PM2 process: `pesat-board-server` (port 3400).
+    - Security fixes `a9dbfcd` di-cherry-pick ke VPS `main` sebagai `076b573`, `npm ci`, `npm run build`, PM2 restarted.
+    - `SEED_DEMO_PASSWORD` diset di `/var/www/pesat-board-repo/server/.env`.
   - **Deployment:** App kini LIVE di `https://pesat.app/smart/board/` (subpath, bukan subdomain `board.pesat.ai` seperti rencana awal).
     - Frontend: base `/smart/board/`, di-serve static oleh Caddy dari `/builds/smart/board/` (worker router pesat.app allowlist `/board/` + `/api/` → VPS origin via sslip.io).
     - Backend: Fastify di VPS port 3400 (PM2), route API di bawah prefix `/api/board`, Socket.IO di path `/board/socket.io`. Postgres fresh (DB lama hilang, schema di-apply ulang + seeded).
   - **Security (Mimosa deep scan, 3 isu nyata diperbaiki & terverifikasi):**
     - `seed.ts`: password demo HARDCODED dihapus → wajib dari env `SEED_DEMO_PASSWORD` (error jika tidak diset) + narrowing tipe untuk TS.
-    - `config.ts`: `safeUploadDir()` guard env path traversal — tolak null-byte/absolute, pastikan `path.resolve(root, p)` tetap di dalam root proyek (`UPLOAD_DIR`/`WA_SESSIONS_DIR` tak bisa keluar proyek).
+    - `config.ts`: `assertInsideRoot()` guard env path traversal — tolak null-byte/absolute, pastikan path tetap di dalam root proyek (`UPLOAD_DIR`/`WA_SESSIONS_DIR` tak bisa keluar proyek).
     - `attachments.ts`: upload filename hanya dari `nanoid` + ekstensi whitelist, di-resolve & diverifikasi dalam `uploadDir`; delete path di-strip prefix `/uploads/`, di-resolve, hanya dihapus bila dalam `uploadDir`.
-    - Sisa finding `high` di `config.ts` bersifat advisory-only (`verdictEffect: none`) — false positive backward-flow env→resolve, sudah diguard.
+    - Sisa finding `high` di `config.ts` bersih (inline guard lolos scan).
 - **Known issues:** error TS pre-existing di beberapa file (`user`/`file` implicit any) — tidak terkait perubahan ini.
 - **Blockers:** none
-- **Next step:** verifikasi end-to-end UI di browser (login → board → upload/hapus lampiran); set env `SEED_DEMO_PASSWORD` di server sebelum reseed
+- **Next step:** audit sisa findings keamanan di seluruh repo; verifikasi UI browser end-to-end
 - **Inspector:** PASSED
-- **Backup location:** dist di VPS /builds/smart/board/
+- **Backup location:** dist di VPS /builds/smart/board/, server/src backup di VPS `server/src.bak-20261002-094834/`
 - **coldstart.md stored at:** D:\Claude Cowork\Pesat Board\extracted\src-extracted\pesat-board-src\coldstart.md
 
 ## [2026-07-21 11:40] — Initial Setup
