@@ -2,7 +2,10 @@ import makeWASocket, {
   DisconnectReason,
   makeCacheableSignalKeyStore,
   useMultiFileAuthState,
+  fetchLatestBaileysVersion,
+  Browsers,
   type WASocket,
+  type WAVersion,
 } from '@whiskeysockets/baileys';
 import type { Boom } from '@hapi/boom';
 import fs from 'node:fs/promises';
@@ -27,6 +30,24 @@ interface SessionEntry {
 
 const sessions = new Map<string, SessionEntry>();
 const logger = pino({ level: 'warn' }, pino.destination({ sync: false }));
+
+let cachedVersion: WAVersion | undefined;
+let versionFetchTime = 0;
+
+async function getWaVersion(): Promise<WAVersion | undefined> {
+  const now = Date.now();
+  if (cachedVersion && now - versionFetchTime < 6 * 60 * 60 * 1000) {
+    return cachedVersion;
+  }
+  try {
+    const { version } = await fetchLatestBaileysVersion();
+    cachedVersion = version;
+    versionFetchTime = now;
+    return version;
+  } catch {
+    return cachedVersion;
+  }
+}
 
 const MAX_RETRIES = 5;
 const BACKOFF_MS = [3_000, 10_000, 30_000, 30_000, 30_000];
@@ -71,14 +92,15 @@ export async function createSession(userId: string, attempt = 0): Promise<{ stat
 
   await fs.mkdir(sessionDir(userId), { recursive: true });
   const { state, saveCreds } = await useMultiFileAuthState(sessionDir(userId));
+  const version = await getWaVersion();
 
   const sock = makeWASocket({
+    version,
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, logger),
     },
-    printQRInTerminal: false,
-    browser: ['Pesat Board', 'Chrome', '1.0'],
+    browser: Browsers.macOS('Desktop'),
     logger,
     generateHighQualityLinkPreview: false,
     markOnlineOnConnect: false,

@@ -33,7 +33,7 @@ export function WaStatusChip({
       </span>
     )
   }
-  if (status === 'CONNECTING') {
+  if (status === 'CONNECTING' || status === 'QR') {
     return (
       <span
         className={cn(
@@ -42,7 +42,7 @@ export function WaStatusChip({
         )}
       >
         <Loader2 className="size-3.5 animate-spin text-amber-500" />
-        Menghubungkan…
+        {status === 'QR' ? 'Menunggu Scan…' : 'Menghubungkan…'}
       </span>
     )
   }

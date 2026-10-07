@@ -215,7 +215,7 @@ export interface SearchResults {
   boards: BoardSummary[]
 }
 
-export type WaConnectionStatus = 'DISCONNECTED' | 'CONNECTING' | 'CONNECTED'
+export type WaConnectionStatus = 'DISCONNECTED' | 'CONNECTING' | 'QR' | 'CONNECTED'
 
 export interface WaInboxItem {
   id: string
@@ -361,7 +361,7 @@ export const api = {
 
   // WhatsApp
   waConnect: () => post<void>('/wa/connect'),
-  waStatus: () => get<{ status: WaConnectionStatus; phone?: string }>('/wa/status'),
+  waStatus: () => get<{ status: WaConnectionStatus; phone?: string; qr?: string | null }>('/wa/status'),
   waDisconnect: () => post<void>('/wa/disconnect'),
   waInbox: () => get<{ items: WaInboxItem[] }>('/wa/inbox'),
   waInboxAttach: (id: string, body: { cardId: string }) =>

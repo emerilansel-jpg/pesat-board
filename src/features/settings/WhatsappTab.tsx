@@ -86,8 +86,9 @@ export function WhatsappTab({ autoConnect }: { autoConnect: boolean }) {
       .then((r) => {
         setStatus(r.status)
         setPhone(r.phone)
-        if (r.status === 'CONNECTING') {
+        if (r.status === 'CONNECTING' || r.status === 'QR') {
           setShowQr(true)
+          if (r.qr) setQr(r.qr)
           setPhase('waiting')
         }
       })
@@ -113,6 +114,29 @@ export function WhatsappTab({ autoConnect }: { autoConnect: boolean }) {
       offStatus()
     }
   }, [])
+
+  // Polling fallback jika socket belum terima event / delay
+  useEffect(() => {
+    if (!showQr || status === 'CONNECTED') return
+    const timer = setInterval(() => {
+      api
+        .waStatus()
+        .then((r) => {
+          if (r.qr) {
+            setQr(r.qr)
+            setPhase((p) => (p === 'success' ? p : 'waiting'))
+          }
+          if (r.status === 'CONNECTED') {
+            setStatus('CONNECTED')
+            setPhone(r.phone)
+            setPhase('success')
+            setTimeout(() => setShowQr(false), 1400)
+          }
+        })
+        .catch(() => {})
+    }, 2000)
+    return () => clearInterval(timer)
+  }, [showQr, status])
 
   // Deep-link ?tab=whatsapp&connect=1 → auto-mulai connect (sekali)
   useEffect(() => {
