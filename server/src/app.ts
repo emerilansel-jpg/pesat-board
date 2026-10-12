@@ -48,7 +48,27 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(cors, { origin: config.allowedOrigins, credentials: true });
   await app.register(multipart, { limits: { fileSize: 25 * 1024 * 1024, files: 1 } });
-  await app.register(fastifyStatic, { root: config.uploadDir, prefix: '/uploads/' });
+  await app.register(fastifyStatic, {
+    root: config.uploadDir,
+    prefix: '/uploads/',
+    setHeaders: (res, pathName) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      if (/\.(html|htm|svg|xml)$/i.test(pathName)) {
+        res.setHeader('Content-Disposition', 'attachment');
+      }
+    },
+  });
+  await app.register(fastifyStatic, {
+    root: config.uploadDir,
+    prefix: '/api/uploads/',
+    decorateReply: false,
+    setHeaders: (res, pathName) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      if (/\.(html|htm|svg|xml)$/i.test(pathName)) {
+        res.setHeader('Content-Disposition', 'attachment');
+      }
+    },
+  });
   await app.register(authPlugin);
 
   await app.register(async (api) => {
