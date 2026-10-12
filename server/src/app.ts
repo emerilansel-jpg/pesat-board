@@ -51,10 +51,10 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(fastifyStatic, {
     root: config.uploadDir,
     prefix: '/uploads/',
-    setHeaders: (res, pathName) => {
-      res.setHeader('X-Content-Type-Options', 'nosniff');
+    setHeaders: (reply, pathName) => {
+      reply.header('X-Content-Type-Options', 'nosniff');
       if (/\.(html|htm|svg|xml)$/i.test(pathName)) {
-        res.setHeader('Content-Disposition', 'attachment');
+        reply.header('Content-Disposition', 'attachment');
       }
     },
   });
@@ -62,10 +62,10 @@ export async function buildApp(): Promise<FastifyInstance> {
     root: config.uploadDir,
     prefix: '/api/uploads/',
     decorateReply: false,
-    setHeaders: (res, pathName) => {
-      res.setHeader('X-Content-Type-Options', 'nosniff');
+    setHeaders: (reply, pathName) => {
+      reply.header('X-Content-Type-Options', 'nosniff');
       if (/\.(html|htm|svg|xml)$/i.test(pathName)) {
-        res.setHeader('Content-Disposition', 'attachment');
+        reply.header('Content-Disposition', 'attachment');
       }
     },
   });
